@@ -100,8 +100,12 @@ app.include_router(sandbox_router, prefix="/api/v1")
 
 @app.get("/", include_in_schema=False)
 async def root_redirect() -> Any:
-    """Redirects base path access to Swagger or returns a flat health check in production."""
-    if settings.ENVIRONMENT != "production":
-        return RedirectResponse(url="/docs")
-    return {"status": "healthy", "service": settings.PROJECT_NAME}
+    """Returns a flat health check to satisfy cloud health probers and redirect references."""
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "environment": settings.ENVIRONMENT,
+        "docs_url": "/docs"
+    }
+
 
