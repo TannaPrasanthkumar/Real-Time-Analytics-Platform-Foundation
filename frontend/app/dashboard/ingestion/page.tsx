@@ -215,9 +215,10 @@ export default function IngestionPage() {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
     try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
       // Direct raw post for multipart upload
       const response = await fetch(
-        `http://localhost:8000/api/v1/organizations/${organization.id}/data-sources/${selectedSourceId}/upload-csv`,
+        `${apiBase}/api/v1/organizations/${organization.id}/data-sources/${selectedSourceId}/upload-csv`,
         {
           method: "POST",
           headers: {
@@ -247,7 +248,8 @@ export default function IngestionPage() {
     setTimeout(() => setCopiedKeyText(false), 2000)
   }
 
-  const apiSampleCode = `curl -X POST "http://localhost:8000/api/v1/ingest" \\
+  const apiBase = typeof window !== "undefined" ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000") : "http://localhost:8000"
+  const apiSampleCode = `curl -X POST "${apiBase}/api/v1/ingest" \\
   -H "X-API-Key: ${lastCreatedKey?.api_key || "your_api_key_here"}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -591,7 +593,7 @@ export default function IngestionPage() {
             <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-xl space-y-2">
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Ingestion Ingress link</span>
               <span className="text-xs text-indigo-400 font-mono truncate block">
-                http://localhost:8000/api/v1/ingest
+                {process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ingest
               </span>
             </div>
 

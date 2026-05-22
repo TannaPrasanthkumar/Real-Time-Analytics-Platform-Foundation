@@ -58,8 +58,8 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Production-grade SaaS Real-Time Analytics & Reporting Platform API.",
     version="0.1.0",
-    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
-    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    docs_url="/docs",
+    redoc_url="/redoc",
     lifespan=lifespan,
 )
 
