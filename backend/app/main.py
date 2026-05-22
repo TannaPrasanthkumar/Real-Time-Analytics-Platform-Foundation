@@ -109,3 +109,14 @@ async def root_redirect() -> Any:
     }
 
 
+@app.get("/health", include_in_schema=False)
+async def root_health() -> Any:
+    """Returns a flat health check to satisfy cloud health probers looking for /health."""
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "environment": settings.ENVIRONMENT
+    }
+
+
+
