@@ -16,13 +16,14 @@ fi
 echo "==> Running database migrations..."
 alembic upgrade head
 
-# Start Celery Worker in the background (correct module path: app.worker.celery_app)
+# Start Celery Worker in the background as unprivileged user 'nobody'
 echo "==> Starting Celery Worker..."
-celery -A app.worker.celery_app worker --loglevel=info &
+celery -A app.worker.celery_app worker --loglevel=info --uid=nobody --pidfile=/tmp/celery_worker.pid &
 
-# Start Celery Beat (Scheduler) in the background (correct module path: app.worker.celery_app)
+# Start Celery Beat (Scheduler) in the background as unprivileged user 'nobody'
+# Note: We specify writable /tmp paths for the database schedule and pidfile
 echo "==> Starting Celery Scheduler (Beat)..."
-celery -A app.worker.celery_app beat --loglevel=info &
+celery -A app.worker.celery_app beat --loglevel=info --uid=nobody --schedule=/tmp/celerybeat-schedule --pidfile=/tmp/celerybeat.pid &
 
 # Start FastAPI Web Gateway in the foreground
 echo "==> Starting FastAPI Web Gateway..."
