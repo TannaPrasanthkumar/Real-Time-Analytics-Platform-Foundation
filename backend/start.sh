@@ -3,6 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Force Celery to allow running as root (required in Docker containers)
+export C_FORCE_ROOT="true"
+
 # Activate virtual environment if it exists (for compatibility)
 if [ -d "/app/.venv" ]; then
     echo "==> Activating virtual environment..."
