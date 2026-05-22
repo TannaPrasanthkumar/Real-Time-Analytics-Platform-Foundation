@@ -1,0 +1,9 @@
+{
+  "/(auth)/signup/page": "app/(auth)/signup/page.js",
+  "/accept-invite/page": "app/accept-invite/page.js",
+  "/share/[token]/page": "app/share/[token]/page.js",
+  "/dashboard/builder/page": "app/dashboard/builder/page.js",
+  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
+  "/dashboard/stream/page": "app/dashboard/stream/page.js",
+  "/dashboard/ingestion/page": "app/dashboard/ingestion/page.js"
+}

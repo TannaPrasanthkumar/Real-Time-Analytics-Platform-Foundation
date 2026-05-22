@@ -1,0 +1,35 @@
+FROM python:3.11-slim
+
+WORKDIR /backend
+
+# Install compilation dependencies and system utilities
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry package manager
+ENV POETRY_HOME="/opt/poetry" \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VERSION=1.7.1
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Disable virtualenv creation within the Docker container (install directly to global env)
+RUN poetry config virtualenvs.create false
+
+# Copy dependency configuration
+COPY pyproject.toml ./
+
+# Install project dependencies (skips project installation itself for build speed)
+RUN poetry install --no-root --no-interaction --no-ansi
+
+# Copy project files (mounted locally for development, copied as runtime fallback)
+COPY . .
+
+EXPOSE 8000
+
+# Execute hot-reloaded development ASGI server
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+WORKDIR /frontend
+
+# Copy dependencies manifest
+COPY package.json ./
+
+# Install packages
+RUN npm install
+
+# Copy application files (mounted locally in docker-compose)
+COPY . .
+
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Start Next.js development server
+CMD ["npm", "run", "dev"]

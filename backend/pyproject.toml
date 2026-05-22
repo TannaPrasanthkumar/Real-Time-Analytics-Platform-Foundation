@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "realtime-analytics-backend"
+version = "0.1.0"
+description = "Production-grade SaaS Real-Time Analytics & Reporting Platform backend."
+authors = ["Antigravity <antigravity@google.com>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.28.0"}
+pydantic = {extras = ["email"], version = "^2.6.4"}
+pydantic-settings = "^2.2.1"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.28"}
+alembic = "^1.13.1"
+asyncpg = "^0.29.0"
+redis = "^5.0.3"
+celery = {extras = ["redis"], version = "^5.3.6"}
+structlog = "^24.1.0"
+colorama = "^0.4.6"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.9"
+slowapi = "^0.1.9"
+httpx = "^0.27.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+pytest-asyncio = "^0.23.5"
+black = "^24.2.0"
+ruff = "^0.3.2"
+mypy = "^1.9.0"
+types-python-jose = "^3.3.4.20240106"
+types-passlib = "^1.7.7.20240327"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+exclude = ["alembic/"]
