@@ -26,10 +26,10 @@ echo "==> Starting Celery Scheduler (Beat)..."
 celery -A app.worker.celery_app beat --loglevel=info --uid=nobody --schedule=/tmp/celerybeat-schedule --pidfile=/tmp/celerybeat.pid &
 
 # Start FastAPI Web Gateway in the foreground
-echo "==> Runtime check: PORT environment variable is set to: '$PORT'"
-if [ -z "$PORT" ]; then
-    echo "==> WARNING: PORT is not set. Falling back to default port 8000"
-    export PORT=8000
-fi
+# Explicitly force PORT to 8000 to align with Railway's Networking tab and override Nixpacks' default 8080 injection
+echo "==> Runtime check: Original PORT environment variable was: '$PORT'"
+export PORT=8000
+echo "==> Forcing PORT to: '$PORT' to match Railway router configuration"
 exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
+
 
