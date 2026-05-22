@@ -3,10 +3,29 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Activate virtual environment if it exists (Railway Railpack installs it here)
+echo "=========================================="
+echo "==> RUNTIME DIAGNOSTIC MODE <=="
+echo "=========================================="
+echo "Current User: $(whoami)"
+echo "Current Directory: $(pwd)"
+echo "PATH: $PATH"
+echo "Listing current directory files:"
+ls -la || true
+echo "Listing /app directory files:"
+ls -la /app || true
+echo "Searching for alembic executable..."
+find / -name "alembic" -type f 2>/dev/null || true
+echo "Searching for .venv directory..."
+find / -name ".venv" -type d 2>/dev/null || true
+echo "=========================================="
+
+# Activate virtual environment if it exists
 if [ -d "/app/.venv" ]; then
-    echo "==> Activating virtual environment..."
+    echo "==> Activating virtual environment at /app/.venv..."
     source /app/.venv/bin/activate
+elif [ -d "/app/backend/.venv" ]; then
+    echo "==> Activating virtual environment at /app/backend/.venv..."
+    source /app/backend/.venv/bin/activate
 fi
 
 # Run database migrations
