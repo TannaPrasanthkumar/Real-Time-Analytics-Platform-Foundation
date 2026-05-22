@@ -14,6 +14,33 @@ router = APIRouter()
 
 
 @router.get(
+    "",
+    status_code=status.HTTP_200_OK,
+    summary="API v1 Entry Point",
+    response_description="A welcome message and status indicating the API service is online.",
+)
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    summary="API v1 Entry Point",
+    response_description="A welcome message and status indicating the API service is online.",
+    include_in_schema=False,
+)
+async def api_v1_root() -> Dict[str, Any]:
+    """Provides a base JSON welcome response for the API v1 gateway.
+    
+    This ensures that querying the base prefix doesn't result in a 404 'Not Found' error.
+    """
+    return {
+        "success": True,
+        "message": "Welcome to the SaaS Real-Time Analytics & Reporting Platform API (v1).",
+        "status": "healthy",
+        "docs_url": "/docs",
+        "version": "0.1.0",
+    }
+
+
+@router.get(
     "/health",
     status_code=status.HTTP_200_OK,
     summary="Core System Health Probe",
