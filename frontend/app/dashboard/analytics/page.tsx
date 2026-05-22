@@ -75,18 +75,75 @@ export default function AnalyticsPage() {
 
     try {
       // 2. Fetch Overview Metrics
-      const overviewRes = await api.get<OverviewData>(
+      const rawOverview = await api.get<any>(
         `/api/v1/organizations/${organization.id}/analytics/overview?start_time=${startTimeStr}&end_time=${endTimeStr}&use_cache=false`
       )
-      setOverview(overviewRes)
+      const adaptedOverview: OverviewData = {
+        page_views: {
+          current: rawOverview.page_views || 0,
+          prior: 0,
+          change_percentage: rawOverview.page_views_change || 0
+        },
+        unique_visitors: {
+          current: rawOverview.unique_visitors || 0,
+          prior: 0,
+          change_percentage: rawOverview.unique_visitors_change || 0
+        },
+        bounce_rate: {
+          current: rawOverview.bounce_rate || 0,
+          prior: 0,
+          change_percentage: rawOverview.bounce_rate_change || 0
+        },
+        avg_session_duration: {
+          current: rawOverview.avg_session_duration || 0,
+          prior: 0,
+          change_percentage: rawOverview.avg_session_duration_change || 0
+        }
+      }
+      setOverview(adaptedOverview)
 
       // 3. Fetch Timeseries Trends
-      const timeseriesRes = await api.get<TimeseriesItem[]>(
-        `/api/v1/organizations/${organization.id}/analytics/timeseries?start_time=${startTimeStr}&end_time=${endTimeStr}&interval=${interval}`
+      const [pageViewsRes, uniqueVisitorsRes] = await Promise.all([
+        api.get<any>(
+          `/api/v1/organizations/${organization.id}/analytics/timeseries?start_time=${startTimeStr}&end_time=${endTimeStr}&interval=${interval}&metric=page_views&use_cache=false`
+        ),
+        api.get<any>(
+          `/api/v1/organizations/${organization.id}/analytics/timeseries?start_time=${startTimeStr}&end_time=${endTimeStr}&interval=${interval}&metric=unique_visitors&use_cache=false`
+        )
+      ])
+
+      const mergedMap = new Map<string, { timestamp: string; page_views: number; unique_visitors: number }>()
+      
+      const pvPoints = pageViewsRes.points || []
+      const uvPoints = uniqueVisitorsRes.points || []
+
+      pvPoints.forEach((pt: any) => {
+        mergedMap.set(pt.bucket, {
+          timestamp: pt.bucket,
+          page_views: pt.value,
+          unique_visitors: 0
+        })
+      })
+      
+      uvPoints.forEach((pt: any) => {
+        const existing = mergedMap.get(pt.bucket)
+        if (existing) {
+          existing.unique_visitors = pt.value
+        } else {
+          mergedMap.set(pt.bucket, {
+            timestamp: pt.bucket,
+            page_views: 0,
+            unique_visitors: pt.value
+          })
+        }
+      })
+      
+      const mergedPoints = Array.from(mergedMap.values()).sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
       )
       
       // Format timestamps for nicer X-axis representations
-      const formattedTimeseries = timeseriesRes.map((item) => {
+      const formattedTimeseries = mergedPoints.map((item) => {
         const date = new Date(item.timestamp)
         const dateStr = lookbackHours <= 24
           ? date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
@@ -99,10 +156,15 @@ export default function AnalyticsPage() {
       setTimeseries(formattedTimeseries)
 
       // 4. Fetch Property Breakdown Segmentations
-      const breakdownRes = await api.get<BreakdownItem[]>(
-        `/api/v1/organizations/${organization.id}/analytics/breakdown?start_time=${startTimeStr}&end_time=${endTimeStr}&property=${breakdownProperty}`
+      const breakdownRes = await api.get<any>(
+        `/api/v1/organizations/${organization.id}/analytics/breakdown?start_time=${startTimeStr}&end_time=${endTimeStr}&property_key=${breakdownProperty}&use_cache=false`
       )
-      setBreakdown(breakdownRes)
+      const adaptedBreakdown = (breakdownRes.items || []).map((item: any) => ({
+        property_value: item.label,
+        count: item.count,
+        percentage: item.percentage
+      }))
+      setBreakdown(adaptedBreakdown)
     } catch (err) {
       console.error("Analytical aggregation loading failed:", err)
     } finally {

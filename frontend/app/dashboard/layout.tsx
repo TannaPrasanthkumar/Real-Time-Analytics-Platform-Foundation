@@ -34,22 +34,55 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     clearAuth,
     toggleSidebar,
     setOrganization,
-    setOrganizations
+    setOrganizations,
+    setAuth
   } = useGlobalStore()
 
+  const [restoringSession, setRestoringSession] = useState(true)
+  console.log("[DEBUG DashboardLayout] Rendering state:", {
+    userEmail: user?.email,
+    orgName: organization?.name,
+    orgsCount: organizations?.length,
+    organizations,
+    restoringSession
+  })
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false)
   const [latency, setLatency] = useState<number | null>(null)
   const [dbStatus, setDbStatus] = useState<string>("connecting")
   const [redisStatus, setRedisStatus] = useState<string>("connecting")
   const [checkingHealth, setCheckingHealth] = useState(false)
 
-  // 1. Authentication protection guard
+  // 1. Session restoration & Authentication protection guard
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-    if (!token) {
-      router.push("/login")
+    const restoreSession = async () => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+      if (!token) {
+        setRestoringSession(false)
+        router.push("/login")
+        return
+      }
+
+      if (user) {
+        setRestoringSession(false)
+        return
+      }
+
+      try {
+        const me = await api.get<any>("/api/v1/auth/me")
+        setAuth(me, token)
+        const orgs = await api.get<any>("/api/v1/auth/organizations")
+        setOrganizations(orgs)
+      } catch (err) {
+        console.error("Session restoration failed:", err)
+        clearAuth()
+        router.push("/login")
+      } finally {
+        setRestoringSession(false)
+      }
     }
-  }, [router])
+
+    restoreSession()
+  }, [user, router, setAuth, setOrganizations, clearAuth])
 
   // 2. Automated health and latency tracking
   const checkHealth = async () => {
@@ -77,20 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => clearInterval(interval)
   }, [])
 
-  // 3. Sync memberships if organizations list is empty on mount
-  useEffect(() => {
-    const syncWorkspaces = async () => {
-      try {
-        const orgs = await api.get<any>("/api/v1/auth/organizations")
-        setOrganizations(orgs)
-      } catch (err) {
-        console.error("Workspace synchronization failed:", err)
-      }
-    }
-    if (user && organizations.length === 0) {
-      syncWorkspaces()
-    }
-  }, [user, organizations, setOrganizations])
+  // 3. Sync memberships - integrated into the session restoration guard above
 
   const handleLogout = async () => {
     try {
@@ -114,6 +134,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "SQL Sandbox", path: "/dashboard/sandbox", icon: Database },
     { name: "Developer Ingestion", path: "/dashboard/ingestion", icon: Zap },
   ]
+
+  if (restoringSession) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-zinc-150">
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="h-8 w-8 animate-spin text-purple-500" />
+          <span className="text-xs uppercase tracking-widest font-extrabold text-zinc-500 animate-pulse">
+            Restoring Analytics Session...
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex bg-[#0a0a0c] text-zinc-100 overflow-hidden">
