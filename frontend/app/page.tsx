@@ -111,7 +111,7 @@ export default function DashboardHome() {
           </button>
           
           <a
-            href="http://localhost:8000/docs"
+            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium shadow-[0_4px_20px_rgba(124,58,237,0.3)] hover:shadow-[0_4px_25px_rgba(124,58,237,0.5)] transition duration-200"
@@ -120,6 +120,7 @@ export default function DashboardHome() {
             API Swagger
             <ArrowUpRight className="h-4 w-4" />
           </a>
+
         </div>
       </header>
 
