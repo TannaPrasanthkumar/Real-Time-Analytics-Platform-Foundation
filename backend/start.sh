@@ -17,8 +17,10 @@ echo "==> Running database migrations..."
 alembic upgrade head
 
 # Start Celery Worker in the background as unprivileged user 'nobody'
+# We explicitly limit concurrency to 1 to prevent severe resource starvation (OOM/CPU choking) in containerized cloud environments
 echo "==> Starting Celery Worker..."
-celery -A app.worker.celery_app worker --loglevel=info --uid=nobody --pidfile=/tmp/celery_worker.pid &
+celery -A app.worker.celery_app worker --loglevel=info --uid=nobody --pidfile=/tmp/celery_worker.pid --concurrency=1 &
+
 
 # Start Celery Beat (Scheduler) in the background as unprivileged user 'nobody'
 # Note: We specify writable /tmp paths for the database schedule and pidfile
