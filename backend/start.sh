@@ -26,5 +26,10 @@ echo "==> Starting Celery Scheduler (Beat)..."
 celery -A app.worker.celery_app beat --loglevel=info --uid=nobody --schedule=/tmp/celerybeat-schedule --pidfile=/tmp/celerybeat.pid &
 
 # Start FastAPI Web Gateway in the foreground
-echo "==> Starting FastAPI Web Gateway..."
+echo "==> Runtime check: PORT environment variable is set to: '$PORT'"
+if [ -z "$PORT" ]; then
+    echo "==> WARNING: PORT is not set. Falling back to default port 8000"
+    export PORT=8000
+fi
 exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
+
